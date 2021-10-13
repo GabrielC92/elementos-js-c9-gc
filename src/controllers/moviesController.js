@@ -17,7 +17,10 @@ const moviesController = {
             include: ['genre']
         })
             .then(movies => {
-                res.render('moviesList.ejs', {movies})
+                res.render('moviesList.ejs', {
+                    movies,
+                    title: 'Listado de Películas'
+                })
             })
     },
     'detail': (req, res) => {
@@ -26,7 +29,10 @@ const moviesController = {
                 include : ['genre']
             })
             .then(movie => {
-                res.render('moviesDetail.ejs', {movie});
+                res.render('moviesDetail.ejs', {
+                    movie,
+                    title: movie.title
+                });
             });
     },
     'new': (req, res) => {
@@ -37,7 +43,10 @@ const moviesController = {
             limit: 5
         })
             .then(movies => {
-                res.render('newestMovies', {movies});
+                res.render('newestMovies', {
+                    movies,
+                    title: 'Películas ordenadas por fecha'
+                });
             });
     },
     'recomended': (req, res) => {
@@ -51,8 +60,28 @@ const moviesController = {
             ]
         })
             .then(movies => {
-                res.render('recommendedMovies.ejs', {movies});
+                res.render('recommendedMovies.ejs', {
+                    movies,
+                    title: 'Películas ordenadas por rating'
+                });
             });
+    },
+    search : (req,res) => {
+        db.Movie.findAll({
+            where: {
+                [Op.or]: [{
+                    title: {
+                        [Op.substring]: req.query.keywords
+                    }
+                }]
+            }
+        })
+            .then(movies => res.render('moviesResult',{
+                title: 'Resultado de la búsqueda',
+                movies,
+                busqueda: req.query.keywords.trim()
+            }))
+            .catch(error => console.log(error));
     },
     //Aqui dispongo las rutas para trabajar con el CRUD
     add: function (req, res) {
@@ -62,7 +91,11 @@ const moviesController = {
         Promise
         .all([promGenres, promActors])
         .then(([allGenres, allActors]) => {
-            return res.render(path.resolve(__dirname, '..', 'views',  'moviesAdd'), {allGenres,allActors})})
+            return res.render(path.resolve(__dirname, '..', 'views',  'moviesAdd'), {
+                allGenres,
+                allActors,
+                title: 'Movie add'
+            })})
         .catch(error => res.send(error))
     },
     create: function (req,res) {
@@ -93,7 +126,12 @@ const moviesController = {
             Movie.release_date = moment( new Date(Movie.release_date)).format('L');
             //new Date("Sun Jan 03 1999 21:00:00 GMT-0300 (hora estándar de Argentina)").toLocaleDateString()
             //return res.send(Movie.release_date);
-            return res.render(path.resolve(__dirname, '..', 'views',  'moviesEdit'), {Movie,allGenres,allActors})})
+            return res.render(path.resolve(__dirname, '..', 'views',  'moviesEdit'), {
+                Movie,
+                allGenres,
+                allActors,
+                title: 'Editar Película'
+            })})
         .catch(error => res.send(error))
     },
     update: function (req,res) {
@@ -120,7 +158,10 @@ const moviesController = {
         Movies
         .findByPk(movieId)
         .then(Movie => {
-            return res.render(path.resolve(__dirname, '..', 'views',  'moviesDelete'), {Movie})})
+            return res.render(path.resolve(__dirname, '..', 'views',  'moviesDelete'), {
+                Movie,
+                title: 'Borrado de la Película'
+            })})
         .catch(error => res.send(error))
     },
     destroy: function (req,res) {
